@@ -4,7 +4,7 @@ import path from 'path';
 import { Readable } from 'stream';
 import { lookup as lookupMime } from 'mime-types';
 
-const FILES_DIR = path.join(__dirname, 'resources', 'files');
+const FILES_DIR = path.join(__dirname, 'files');
 
 type FixtureFileConfig = {
   /**
