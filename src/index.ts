@@ -7,10 +7,11 @@ const server = new FixtureServer({ port: 3000 });
   console.log('Fixture server running at http://localhost:3000');
 
   // Usage examples:
-  // server.setFixtureFileResponseBitrate('file1.txt', 32 * 1024);
   server.setFixtureFileResponseTime('file1.txt', 2000);
-  server.setFixtureFileResponseBitrate('file2.txt', 1);
-  server.setFixtureFileResponseBitrate('file4.txt', 1);
+  server.setFixtureFileResponseBitrate('file4.txt', 10);
+  server.setFixtureFileHeaders('file4.txt', {
+    'X-CDN': "edgemv",
+  });
   server.setFixtureFileHeaders('file1.txt', { 'X-Demo-Header': 'example', 'Content-Language': 'en' });
   server.setFixtureFileHeaders('file2.txt', { 'Cache-Control': 'no-store' });
 
