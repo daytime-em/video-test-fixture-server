@@ -1,0 +1,22 @@
+{
+  "name": "test-fixture-server",
+  "version": "1.0.0",
+  "description": "Server for test fixtures",
+  "main": "index.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "npm run build && npm run start"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "mime-types": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/mime-types": "^3.0.1",
+    "@types/node": "^24.0.1",
+    "typescript": "^5.8.3"
+  }
+}
