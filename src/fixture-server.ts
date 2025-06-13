@@ -23,34 +23,6 @@ type FixtureFileConfig = {
 type FixtureFileConfigMap = Record<string, FixtureFileConfig>;
 
 /**
- * Helper: Throttle a stream to fit a given total duration.
- */
-function createTimedThrottledStream(data: Buffer, totalTimeMs: number): Readable {
-  const stream = new Readable({
-    read(size) {
-      if ((this as any)._offset >= (this as any)._data.length) {
-        this.push(null);
-        return;
-      }
-      const chunkSize = Math.ceil((this as any)._data.length / (this as any)._steps);
-      const end = Math.min((this as any)._offset + chunkSize, (this as any)._data.length);
-      this.push((this as any)._data.slice((this as any)._offset, end));
-      (this as any)._offset = end;
-      (this as any)._step++;
-      if ((this as any)._offset < (this as any)._data.length) {
-        setTimeout(() => (this as any)._read(size), (this as any)._interval);
-      }
-    }
-  }) as Readable & { _data: Buffer; _offset: number; _steps: number; _step: number; _interval: number };
-  (stream as any)._data = Buffer.from(data);
-  (stream as any)._offset = 0;
-  (stream as any)._steps = Math.ceil(totalTimeMs / 50); // Send at most every 50ms
-  (stream as any)._step = 0;
-  (stream as any)._interval = totalTimeMs / (stream as any)._steps;
-  return stream;
-}
-
-/**
  * Helper: Throttle a stream for a given bytes-per-second rate.
  */
 function createBitrateThrottledStream(data: Buffer, bps: number): Readable {
@@ -133,14 +105,8 @@ export class FixtureServer {
         }
 
         if (totalTimeMs && totalTimeMs > 0) {
-          // Timed throttling
-          fs.readFile(filepath, (err, data) => {
-            if (err) {
-              res.sendStatus(404);
-              return;
-            }
-            createTimedThrottledStream(data, totalTimeMs).pipe(res);
-          });
+          // Response time throttling
+          setTimeout(() => { res.sendFile(filepath); }, totalTimeMs);
         } else if (responseBitrate && responseBitrate > 0) {
           // Bitrate (bytes/sec) throttling
           fs.readFile(filepath, (err, data) => {
