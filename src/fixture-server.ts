@@ -56,7 +56,7 @@ async function writeResponseAtBitrate(data: Buffer, response: Response, bps: num
 
   function writeChunk(bytes: number): Promise<number> {
     return new Promise((resolve, reject) => {
-      console.log(`writeChunk: called`);
+      // console.log(`writeChunk: called`);
       let bytesLeft = dataLen - currentOffset;
       console.log(`writeChunk: ${bytesLeft} bytes left`);
       if (bytesLeft <= 0) {
@@ -67,7 +67,7 @@ async function writeResponseAtBitrate(data: Buffer, response: Response, bps: num
       console.log(`writeChunk: writing ${writeSize} bytes`);
 
       const chunk = data.subarray(currentOffset, currentOffset + writeSize);
-      console.log(`writeChunk: just checking: chunk len is ${chunk.length}`);
+      // console.log(`writeChunk: just checking: chunk len is ${chunk.length}`);
       response.write(chunk, error => {
         if (error) {
           reject(error);
@@ -155,8 +155,13 @@ export class FixtureServer {
           // Response time throttling
           // setTimeout(() => { res.sendFile(filepath); }, totalTimeMs);
           const data = await fs.promises.readFile(filepath);
+          console.log(`File is ${data.length}`);
+
           const effectiveBitrate = (data.length / totalTimeMs) * 8;
-          writeResponseAtBitrate(data, res, effectiveBitrate);
+          console.log(`should write out at bitrate ${effectiveBitrate}`);
+
+          await writeResponseAtBitrate(data, res, effectiveBitrate);
+          res.end();
         } else if (responseBitrate && responseBitrate > 0) {
           // Bitrate (bytes/sec) throttling
           fs.readFile(filepath, (err, data) => {
