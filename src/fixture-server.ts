@@ -9,11 +9,10 @@ const FILES_DIR = path.join(__dirname, 'files');
 type FixtureFileConfig = {
   /**
    * If set, total time (in ms) to serve the file (overrides responseBitrate).
-   * If null, no throttling.
    */
   totalTimeMs?: number;
   /**
-   * If set, bytes per second for throttling.
+   * If set, bits per second for throttling.
    * Ignored if totalTimeMs is set.
    */
   responseBitrate?: number;
