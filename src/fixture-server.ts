@@ -22,16 +22,14 @@ type FixtureFileConfig = {
 type FixtureFileConfigMap = Record<string, FixtureFileConfig>;
 
 async function writeResponseThrottled(data: Buffer, response: Response, bytesPerSec: number) {
-  console.log(`writeResponseAtBitrate: Writing ${data.length} at ${bytesPerSec} bps`);
+  console.log(`writeResponseThrottled: Writing ${data.length} at ${bytesPerSec} bps`);
   const dataLen = data.length;
   const bytesPerHundredMs = Math.floor(bytesPerSec / 10);
-  console.log(`writeResponseAtBitrate: bytes per hundred ms: ${bytesPerHundredMs}`);
 
   let currentOffset = 0;
 
   function writeChunk(bytes: number): Promise<number> {
     return new Promise((resolve, reject) => {
-      // console.log(`writeChunk: called`);
       let bytesLeft = dataLen - currentOffset;
       console.log(`writeChunk: ${bytesLeft} bytes left`);
       if (bytesLeft <= 0) {
@@ -39,7 +37,6 @@ async function writeResponseThrottled(data: Buffer, response: Response, bytesPer
         return;
       }
       let writeSize = (bytes <= bytesLeft) ? bytes : bytesLeft;
-      console.log(`writeChunk: writing ${writeSize} bytes`);
 
       const chunk = data.subarray(currentOffset, currentOffset + writeSize);
       // console.log(`writeChunk: just checking: chunk len is ${chunk.length}`);
@@ -144,6 +141,7 @@ export class FixtureServer {
           // Bitrate (bits/sec) throttling
           try {
             const data = await fs.promises.readFile(filepath);
+            console.log(`${filepath}: writing out ${data.length} at ${responseBitrate / 8} bytes per sec`);
             await writeResponseThrottled(data, res, responseBitrate / 8);
             res.end();
           } catch(err) {
