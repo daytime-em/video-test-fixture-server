@@ -22,34 +22,10 @@ type FixtureFileConfig = {
 
 type FixtureFileConfigMap = Record<string, FixtureFileConfig>;
 
-/**
- * Helper: Throttle a stream for a given bytes-per-second rate.
- */
-function createBitrateThrottledStream(data: Buffer, bps: number): Readable {
-  const stream = new Readable({
-    read(size) {
-      if ((this as any)._offset >= (this as any)._data.length) {
-        this.push(null);
-        return;
-      }
-      const chunkSize = bps / 10; // send chunks every 100ms
-      const end = Math.min((this as any)._offset + chunkSize, (this as any)._data.length);
-      this.push((this as any)._data.slice((this as any)._offset, end));
-      (this as any)._offset = end;
-      if ((this as any)._offset < (this as any)._data.length) {
-        setTimeout(() => (this as any)._read(size), 100);
-      }
-    }
-  }) as Readable & { _data: Buffer; _offset: number };
-  (stream as any)._data = Buffer.from(data);
-  (stream as any)._offset = 0;
-  return stream;
-}
-
-async function writeResponseAtBitrate(data: Buffer, response: Response, bps: number) {
-  console.log(`writeResponseAtBitrate: Writing ${data.length} at ${bps} bps`);
+async function writeResponseThrottled(data: Buffer, response: Response, bytesPerSec: number) {
+  console.log(`writeResponseAtBitrate: Writing ${data.length} at ${bytesPerSec} bps`);
   const dataLen = data.length;
-  const bytesPerHundredMs = Math.floor(bps / 8 / 10);
+  const bytesPerHundredMs = Math.floor(bytesPerSec / 10);
   console.log(`writeResponseAtBitrate: bytes per hundred ms: ${bytesPerHundredMs}`);
 
   let currentOffset = 0;
@@ -153,24 +129,26 @@ export class FixtureServer {
 
         if (totalTimeMs && totalTimeMs > 0) {
           // Response time throttling
-          // setTimeout(() => { res.sendFile(filepath); }, totalTimeMs);
-          const data = await fs.promises.readFile(filepath);
-          console.log(`File is ${data.length}`);
+          try {
+            const data = await fs.promises.readFile(filepath);
+            const bytesPerSec = data.length * 1000 / totalTimeMs;
+            console.log(`${filepath}: writing out ${data.length} at ${bytesPerSec} bytes per sec`);
 
-          const effectiveBitrate = (data.length / totalTimeMs) * 8;
-          console.log(`should write out at bitrate ${effectiveBitrate}`);
-
-          await writeResponseAtBitrate(data, res, effectiveBitrate);
-          res.end();
+            await writeResponseThrottled(data, res, bytesPerSec);
+            res.end();
+          } catch (err) {
+            // todo - better than this
+            res.sendStatus(500);
+          }
         } else if (responseBitrate && responseBitrate > 0) {
-          // Bitrate (bytes/sec) throttling
-          fs.readFile(filepath, (err, data) => {
-            if (err) {
-              res.sendStatus(404);
-              return;
-            }
-            createBitrateThrottledStream(data, responseBitrate).pipe(res);
-          });
+          // Bitrate (bits/sec) throttling
+          try {
+            const data = await fs.promises.readFile(filepath);
+            await writeResponseThrottled(data, res, responseBitrate / 8);
+            res.end();
+          } catch(err) {
+            res.sendStatus(500);
+          }
         } else {
           // No throttling, serve directly
           res.sendFile(filepath);
