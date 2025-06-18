@@ -1,12 +1,18 @@
+import { fixtureSegmentPath } from './fixture-paths';
 import { FixtureServer } from './fixture-server';
 
-const server = new FixtureServer({ port: 3000 });
+const port = 3000;
+const server = new FixtureServer({ port: port});
 
 (async () => {
   await server.listen();
-  console.log('Fixture server running at http://localhost:3000');
+  console.log(`Fixture server running at http://localhost:${port}`);
 
-  // Set up a "CDN Change"
+  // Set up a faked CDN Change
+  server.setFixtureFileHeaders(
+    fixtureSegmentPath('mux-promo', 'stream_0', 0),
+    { 'x-cdn': 'fastly' }
+  );
 
   // Just the text files
   server.setFixtureFileResponseTime('file1.txt', 2000);
