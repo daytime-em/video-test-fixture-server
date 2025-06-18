@@ -79,7 +79,7 @@ function* walk(dir: string, prefix = ''): Generator<{ route: string; filepath: s
     if (dirent.isDirectory()) {
       yield* walk(absPath, relPath);
     } else if (dirent.isFile()) {
-      yield { route: `/files/${relPath.split(path.sep).join('/')}`, filepath: absPath };
+      yield { route: `/${relPath.split(path.sep).join('/')}`, filepath: absPath };
     }
   }
 }
@@ -105,6 +105,7 @@ export class FixtureServer {
   private _setupRoutes() {
     for (const { route, filepath } of walk(FILES_DIR)) {
       const filename = path.relative(FILES_DIR, filepath).split(path.sep).join('/');
+      console.info(`adding route: ${route} -> ${filepath}`);
       this.app.get(route, async (req: Request, res: Response) => {
         const config = this.fixtureFileConfig[filename] || {};
         const { totalTimeMs, responseBitrate, headers } = config;
