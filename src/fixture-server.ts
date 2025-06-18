@@ -46,6 +46,53 @@ function createBitrateThrottledStream(data: Buffer, bps: number): Readable {
   return stream;
 }
 
+async function writeResponseAtBitrate(data: Buffer, response: Response, bps: number) {
+  console.log(`writeResponseAtBitrate: Writing ${data.length} at ${bps} bps`);
+  const dataLen = data.length;
+  const bytesPerHundredMs = Math.floor(bps / 8 / 10);
+  console.log(`writeResponseAtBitrate: bytes per hundred ms: ${bytesPerHundredMs}`);
+
+  let currentOffset = 0;
+
+  function writeChunk(bytes: number): Promise<number> {
+    return new Promise((resolve, reject) => {
+      console.log(`writeChunk: called`);
+      let bytesLeft = dataLen - currentOffset;
+      console.log(`writeChunk: ${bytesLeft} bytes left`);
+      if (bytesLeft <= 0) {
+        resolve(0);
+        return;
+      }
+      let writeSize = (bytes <= bytesLeft) ? bytes : bytesLeft;
+      console.log(`writeChunk: writing ${writeSize} bytes`);
+
+      const chunk = data.subarray(currentOffset, currentOffset + writeSize);
+      console.log(`writeChunk: just checking: chunk len is ${chunk.length}`);
+      response.write(chunk, error => {
+        if (error) {
+          reject(error);
+        } else {
+          currentOffset += writeSize;
+          resolve(writeSize);
+        }
+      });
+    });
+  };
+
+  while (true) {
+    console.log(`Writing chunk`);
+    const writeLen = await writeChunk(bytesPerHundredMs);
+    if (writeLen <= 0) {
+      break;
+    }
+    await waitFor(100);
+  }
+}
+
+async function waitFor(ms: number) {
+  await new Promise<void>(resolve => setTimeout(() => resolve(), ms));
+}
+
 /**
  * Recursively traverse directory and return route/filepath pairs.
  */
@@ -83,7 +130,7 @@ export class FixtureServer {
   private _setupRoutes() {
     for (const { route, filepath } of walk(FILES_DIR)) {
       const filename = path.relative(FILES_DIR, filepath).split(path.sep).join('/');
-      this.app.get(route, (req: Request, res: Response) => {
+      this.app.get(route, async (req: Request, res: Response) => {
         const config = this.fixtureFileConfig[filename] || {};
         const { totalTimeMs, responseBitrate, headers } = config;
 
@@ -106,7 +153,10 @@ export class FixtureServer {
 
         if (totalTimeMs && totalTimeMs > 0) {
           // Response time throttling
-          setTimeout(() => { res.sendFile(filepath); }, totalTimeMs);
+          // setTimeout(() => { res.sendFile(filepath); }, totalTimeMs);
+          const data = await fs.promises.readFile(filepath);
+          const effectiveBitrate = (data.length / totalTimeMs) * 8;
+          writeResponseAtBitrate(data, res, effectiveBitrate);
         } else if (responseBitrate && responseBitrate > 0) {
           // Bitrate (bytes/sec) throttling
           fs.readFile(filepath, (err, data) => {

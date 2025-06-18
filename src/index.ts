@@ -8,7 +8,8 @@ const server = new FixtureServer({ port: 3000 });
 
   // Usage examples:
   server.setFixtureFileResponseTime('file1.txt', 2000);
-  server.setFixtureFileResponseBitrate('file4.txt', 10);
+  // server.setFixtureFileResponseBitrate('file4.txt', 10);
+  server.setFixtureFileResponseTime('file4.txt', 21_000);
   server.setFixtureFileHeaders('file4.txt', {
     'X-CDN': "edgemv",
   });
