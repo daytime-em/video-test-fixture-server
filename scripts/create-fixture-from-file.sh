@@ -18,6 +18,6 @@ ffmpeg -i "$input_file" \
   -map "[v3out]" -map a:0 -c:v:2 libx264 -x264-params  "keyint=150:scenecut=0" -b:v:2 1400k -maxrate:v:2 1498k -bufsize:v:2 2100k -c:a:2 aac -b:a:2 96k \
   -f hls -hls_time 5 -hls_playlist_type vod \
   -hls_segment_filename "$output_dir/stream_%v/%d.ts" \
-  -master_pl_name master.m3u8 \
+  -master_pl_name stream.m3u8 \
   -var_stream_map "v:0,a:0 v:1,a:1 v:2,a:2" \
   "$output_dir/stream_%v/media.m3u8"
