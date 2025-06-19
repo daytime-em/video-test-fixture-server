@@ -1,9 +1,9 @@
 import { FixtureServer } from './fixture-server';
 
-import { types, parse } from 'hls-parser';
+import { parse } from 'hls-parser';
 // import fs from 'fs';
 import { promises as fs } from 'fs';
-import { MasterPlaylist, MediaPlaylist, Segment } from 'hls-parser/types';
+import { MasterPlaylist, MediaPlaylist } from 'hls-parser/types';
 import path from 'path';
 
 const port = 3000;
@@ -14,22 +14,25 @@ const FILES_DIR = path.join(__dirname, 'files');
   await server.listen();
   console.log(`Fixture server running at http://localhost:${port}`);
 
+  // todo - doesn't work because the config keys are relative paths
+  // todo - fix by moving this kind of think into the fixture server
   // Set up a fake CDN Change
   const streamName = "mux-promo"
   const streamPath = `${FILES_DIR}/${streamName}`
   const mvp = parse((await fs.readFile(`${streamPath}/stream.m3u8`)).toString('utf8')) as MasterPlaylist;
-  const changeCdnSegmentNum = 5;
+  const changeCdnSegmentNum = 2;
   mvp.variants.forEach(async variant => {
-    console.log(`variant url is ${variant.uri}`);
     const mediaPl = parse((await fs.readFile(`${streamPath}/${variant.uri}`)).toString('utf-8')) as MediaPlaylist;
     const segmentsCdn1 = mediaPl.segments.slice(0, changeCdnSegmentNum);
     const segmentsCdn2 = mediaPl.segments.slice(changeCdnSegmentNum, undefined);
     segmentsCdn1.forEach(cdn1Segment => {
-      const segmentPath = `${streamPath}/${cdn1Segment.uri}`;
+      const segmentPath = `${streamPath}/${path.dirname(variant.uri)}/${cdn1Segment.uri}`;
+      console.log(`setting headers for segment at ${segmentPath}`);
       server.setFixtureFileHeaders(segmentPath, { "x-cdn": "fastly" });
     })
     segmentsCdn2.forEach(cdn2Segment => {
-      const segmentPath = `${streamPath}/${cdn2Segment.uri}`;
+      const segmentPath = `${streamPath}/${path.dirname(variant.uri)}/${cdn2Segment.uri}`;
+      console.log(`setting headers for segment at ${segmentPath}`);
       server.setFixtureFileHeaders(segmentPath, { "x-cdn": "edgemv"} );
     });
   });

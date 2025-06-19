@@ -236,6 +236,7 @@ export class FixtureServer {
    * Set custom response headers for a single file.
    */
   setFixtureFileHeaders(filename: string, headers: Record<string, string>): void {
+    console.log(`setting headers for ${filename}: {${headers}}`);
     if (!this.fixtureFileConfig[filename]) this.fixtureFileConfig[filename] = {};
     this.fixtureFileConfig[filename].headers = { ...(this.fixtureFileConfig[filename].headers || {}), ...headers };
   }
