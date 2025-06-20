@@ -14,8 +14,31 @@ const FILES_DIR = path.join(__dirname, 'files');
   await server.listen();
   console.log(`Fixture server running at http://localhost:${port}`);
 
-  // todo - doesn't work because the config keys are relative paths
-  // todo - fix by moving this kind of think into the fixture server
+  // todo - maybe some apis for finding mvps/mps/segments and applying rules to them?
+  //  yes, liking lightweight types on top of this (but should allow accessing *Playlist/Variant/Segment objects)
+  // fixtures.ts:
+  //  findFixtureStream():  FixtureStream
+  //  FixtureFile
+  //    relativePath: string
+  //    absolutePath: string
+  //  FixtureStream
+  //    mvpFile: FixtureFile
+  //    masterPlaylist: MasterPlaylist
+  //  FixtureVariant
+  //    mediaPlaylistFile: FixtureFile
+  //    mediaPlaylist: MediaPlaylist 
+  //  FixtureSegment
+  //    segmentFile: FixtureFile
+  //    mediaSegment: Segment
+  //
+  // todo - changes for FixtureServer
+  //  FixtureServer
+  //    setFileResponseTime(file: FixtureFile | string, time: number)
+  //    setFileResponseBitrate(file: FixtureFile | string, bitsPerSec: number)
+  //    setFileHeaders(file: FixtureFile | string, headers: Map<string, string | number | string[]>)
+  //
+  //  todo - FixtureServer stores routes in a set (route name is also key on config map)
+  //  todo - FixtureServer validates that routes exist when setting rules
   // Set up a fake CDN Change
   const streamName = "mux-promo"
   const streamPath = `${FILES_DIR}/${streamName}`
@@ -26,12 +49,12 @@ const FILES_DIR = path.join(__dirname, 'files');
     const segmentsCdn1 = mediaPl.segments.slice(0, changeCdnSegmentNum);
     const segmentsCdn2 = mediaPl.segments.slice(changeCdnSegmentNum, undefined);
     segmentsCdn1.forEach(cdn1Segment => {
-      const segmentPath = `${streamPath}/${path.dirname(variant.uri)}/${cdn1Segment.uri}`;
+      const segmentPath = `${streamName}/${path.dirname(variant.uri)}/${cdn1Segment.uri}`;
       console.log(`setting headers for segment at ${segmentPath}`);
       server.setFixtureFileHeaders(segmentPath, { "x-cdn": "fastly" });
     })
     segmentsCdn2.forEach(cdn2Segment => {
-      const segmentPath = `${streamPath}/${path.dirname(variant.uri)}/${cdn2Segment.uri}`;
+      const segmentPath = `${streamName}/${path.dirname(variant.uri)}/${cdn2Segment.uri}`;
       console.log(`setting headers for segment at ${segmentPath}`);
       server.setFixtureFileHeaders(segmentPath, { "x-cdn": "edgemv"} );
     });
