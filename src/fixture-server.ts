@@ -4,8 +4,6 @@ import path from 'path';
 import { Readable } from 'stream';
 import { lookup as lookupMime } from 'mime-types';
 
-const FILES_DIR = path.join(__dirname, 'files');
-
 type FixtureFileConfig = {
   /**
    * If set, total time (in ms) to serve the file (overrides responseBitrate).
@@ -83,25 +81,31 @@ function* walk(dir: string, prefix = ''): Generator<{ route: string; filepath: s
 
 interface FixtureServerOptions {
   port?: number;
+  basedir?: string;
 }
 
 export class FixtureServer {
   public app: Express;
   public port: number;
+  public basedir: string;
   private server: ReturnType<Express['listen']> | null;
   private fixtureFileConfig: FixtureFileConfigMap;
 
-  constructor({ port = 3000 }: FixtureServerOptions = {}) {
+  constructor({
+     port = 3000,
+     basedir = __dirname,
+  }: FixtureServerOptions = {}) {
     this.port = port;
     this.app = express();
     this.server = null;
     this.fixtureFileConfig = {};
-    this._setupRoutes();
+    this.basedir = basedir;
+    this._setupRoutes(basedir);
   }
 
-  private _setupRoutes() {
-    for (const { route, filepath } of walk(FILES_DIR)) {
-      const filename = path.relative(FILES_DIR, filepath).split(path.sep).join('/');
+  private _setupRoutes(basedir: string) {
+    for (const { route, filepath } of walk(basedir)) {
+      const filename = path.relative(basedir, filepath).split(path.sep).join('/');
       console.info(`adding route: ${route} -> ${filepath}`);
       this.app.get(route, async (req: Request, res: Response) => {
         const config = this.fixtureFileConfig[filename] || {};

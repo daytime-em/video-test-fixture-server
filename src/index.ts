@@ -5,10 +5,11 @@ import { parse } from 'hls-parser';
 import { promises as fs } from 'fs';
 import { MasterPlaylist, MediaPlaylist } from 'hls-parser/types';
 import path from 'path';
+import { parseFixtureStream } from './fixtures';
 
 const port = 3000;
-const server = new FixtureServer({ port: port});
 const FILES_DIR = path.join(__dirname, 'files');
+const server = new FixtureServer({ port: port, basedir: FILES_DIR});
 
 (async () => {
   await server.listen();
@@ -63,7 +64,16 @@ const FILES_DIR = path.join(__dirname, 'files');
     });
   });
   
+  const fixtureStream = await parseFixtureStream("tears-of-steel")
+  console.log(`Parsed fixture stream ${fixtureStream.streamName} at ${fixtureStream.playlistFile.relativePath}`);
 
+  for (const variant of fixtureStream.variants) {
+    console.log(`Has variant at ${variant.playlistFile.relativePath}`);
+    for (const segment of variant.segments) {
+      console.log(`has segment at ${segment.segmentFile.relativePath}`);
+    }
+  }
+  
   // Just the text files
   server.setFixtureFileResponseTime('file1.txt', 2000);
   server.setFixtureFileResponseBitrate('file2.txt', 256 * 1024);

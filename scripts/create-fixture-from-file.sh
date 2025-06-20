@@ -2,6 +2,9 @@
 # mp4-to-hls.sh - makes an HLS stream out of the given mp4 file, 3 renditions and 5-sec segments
 # Transcodes the input to 30fps and 5-sec keyframe interval. This might impact the quality of the video, but this is just for test fixtures
 
+# todo - also cmaf
+# todo - also subtitles
+
 readonly input_file=$1
 readonly output_dir=$2
 
