@@ -108,6 +108,7 @@ export class FixtureServer {
       const filename = path.relative(basedir, filepath).split(path.sep).join('/');
       console.info(`adding route: ${route} -> ${filepath}`);
       this.app.get(route, async (req: Request, res: Response) => {
+        console.log(`serving file ${filename}`);
         const config = this.fixtureFileConfig[filename] || {};
         const { totalTimeMs, responseBitrate, headers } = config;
 
@@ -240,7 +241,9 @@ export class FixtureServer {
    * Set custom response headers for a single file.
    */
   setFixtureFileHeaders(filename: string, headers: Record<string, string>): void {
-    console.log(`setting headers for ${filename}: {${headers}}`);
+    for (const [key, value] of Object.entries(headers)) {
+      console.log(`setting header for ${filename}: {${key}: ${value}}`);
+    }
     if (!this.fixtureFileConfig[filename]) this.fixtureFileConfig[filename] = {};
     this.fixtureFileConfig[filename].headers = { ...(this.fixtureFileConfig[filename].headers || {}), ...headers };
   }

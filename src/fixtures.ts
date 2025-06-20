@@ -9,7 +9,6 @@ import { promises as fs } from "fs";
 
 export type FixtureFile = {
   relativePath: string;
-  absolutePath: string;
 };
 
 export class FixtureStream {
@@ -65,7 +64,7 @@ export class FixtureMediaPlaylist {
 
   segmentAtTime(seconds: number): FixtureSegment | null {
     const index = this.segmentIndex(seconds);
-    if (index) {
+    if (index != null) {
       return this.segments[index];
     } else {
       return null;
@@ -75,9 +74,9 @@ export class FixtureMediaPlaylist {
   segmentsInTimeRange(startSec: number, endSec: number): FixtureSegment[] | null {
     let startIdx = this.segmentIndex(startSec);
     let endIdx = this.segmentIndex(endSec);
-    if (startIdx) {
-      if (endIdx) {
-        return this.segments.slice(startIdx, endIdx + 1);
+    if (startIdx != null) {
+      if (endIdx != null) {
+        return this.segments.slice(startIdx, endIdx);
       }
       return this.segments.slice(startIdx)
     } else {
@@ -101,13 +100,13 @@ export async function parseFixtureStream(
   basedir: string = "files",
 ): Promise<FixtureStream> {
   const filesDir = path.join(__dirname, basedir);
-  const streamPath = path.join(filesDir, name);
-  const mvp = parse((await fs.readFile(`${streamPath}/stream.m3u8`)).toString("utf8"));
+  const streamPath = path.join(filesDir, name, "stream.m3u8");
+  const mvp = parse((await fs.readFile(streamPath)).toString("utf8"));
   if (mvp instanceof MasterPlaylist) {
     const variants = mvp.variants.map(v => parseMediaPlaylist(basedir, name, v.uri));
     return new FixtureStream(
       name,
-      { relativePath: streamPath, absolutePath: path.resolve(streamPath) },
+      { relativePath: path.relative(filesDir, streamPath), },
       mvp,
       await Promise.all(variants)
     );
@@ -117,24 +116,26 @@ export async function parseFixtureStream(
 }
 
 export async function parseMediaPlaylist(
-  basedir: string,
+  basedir: string = 'files',
   streamName: string,
   uri: string
 ): Promise<FixtureMediaPlaylist> {
-  const playlistPath = path.resolve(path.join(__dirname, basedir, streamName, uri))
+  const filesDir = path.join(__dirname, basedir);
+  const playlistPath = path.resolve(path.join(filesDir, streamName, uri))
   const mediaPl = parse((await fs.readFile(playlistPath)).toString("utf-8"));
   if (mediaPl instanceof MediaPlaylist) {
     let segments: FixtureSegment[] = mediaPl.segments.map(segment => {
-      const segmentPath = `${basedir}/${path.dirname(uri)}/${segment.uri}`;
+      // const segmentPath = `${basedir}/${path.dirname(uri)}/${segment.uri}`;
+      const segmentPath = path.resolve(path.join(filesDir, streamName, path.dirname(uri), segment.uri));
       return new FixtureSegment(
-        { relativePath:  segmentPath, absolutePath: path.resolve(segmentPath) },
+        { relativePath: path.relative(filesDir, segmentPath), },
         segment
       );
     });
 
-    const relativePath = path.join(basedir, uri);
+    const mpPath = path.join(basedir, uri);
     return new FixtureMediaPlaylist(
-      { relativePath , absolutePath: path.resolve(relativePath) },
+      { relativePath: path.relative(filesDir, playlistPath), },
       mediaPl,
       segments
     );
