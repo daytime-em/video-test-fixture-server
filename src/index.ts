@@ -23,10 +23,13 @@ const FILES_DIR = path.join(__dirname, 'files');
   //    absolutePath: string
   //  FixtureStream
   //    mvpFile: FixtureFile
+  //    variants: FixtureVariant
   //    masterPlaylist: MasterPlaylist
   //  FixtureVariant
   //    mediaPlaylistFile: FixtureFile
   //    mediaPlaylist: MediaPlaylist 
+  //    segmentAtTime(seconds: number): FixtureSegment
+  //    segmentsInTimeRange(startSec: number, endSec: number): FixtureSegment[]
   //  FixtureSegment
   //    segmentFile: FixtureFile
   //    mediaSegment: Segment
