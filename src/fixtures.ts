@@ -71,9 +71,9 @@ export class FixtureMediaPlaylist {
     }
   }
 
-  segmentsInTimeRange(startSec: number, endSec: number): FixtureSegment[] | null {
+  segmentsInTimeRange(startSec: number, endSec?: number): FixtureSegment[] | null {
     let startIdx = this.segmentIndex(startSec);
-    let endIdx = this.segmentIndex(endSec);
+    let endIdx = this.segmentIndex(endSec ?? Infinity);
     if (startIdx != null) {
       if (endIdx != null) {
         return this.segments.slice(startIdx, endIdx);

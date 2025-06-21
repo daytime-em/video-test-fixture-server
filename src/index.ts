@@ -16,11 +16,11 @@ const server = new FixtureServer({ port: port, basedir: FILES_DIR});
   console.log(`Fixture server running at http://localhost:${port}`);
 
   // Set up fake CDN change
-  const fixtureStream = await parseFixtureStream("mux-promo")
+  const fixtureStream = await parseFixtureStream("blue-moon")
   console.log(`Parsed fixture stream ${fixtureStream.streamName} at ${fixtureStream.playlistFile.relativePath}`);
   console.log(`Parsed Variant ${fixtureStream.variants[0].playlistFile.relativePath}`);
-  const cdn1Segments = fixtureStream.variants[0].segmentsInTimeRange(0, 20);
-  const cdn2Segments = fixtureStream.variants[0].segmentsInTimeRange(20, 30);
+  const cdn1Segments = fixtureStream.variants[0].segmentsInTimeRange(0, 75);
+  const cdn2Segments = fixtureStream.variants[0].segmentsInTimeRange(75);
   cdn1Segments?.forEach(it => server.setFixtureFileHeaders(
     it.segmentFile.relativePath, { "x-cdn" : "fastly" }
   ));
