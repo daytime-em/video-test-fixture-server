@@ -35,4 +35,9 @@ const server = new FixtureServer({ port: port, basedir: FILES_DIR});
     'X-CDN': "edgemv",
   });
 
+  server.cloneFixtureStream(
+    fixtureStream,
+    "cloned-blue-moon"
+  )
+
 })();

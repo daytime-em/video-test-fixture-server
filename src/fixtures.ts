@@ -9,6 +9,7 @@ import { promises as fs } from "fs";
 
 export type FixtureFile = {
   relativePath: string;
+  route: string;
 };
 
 export class FixtureStream {
@@ -104,9 +105,10 @@ export async function parseFixtureStream(
   const mvp = parse((await fs.readFile(streamPath)).toString("utf8"));
   if (mvp instanceof MasterPlaylist) {
     const variants = mvp.variants.map(v => parseMediaPlaylist(relativeBasedir, name, v.uri));
+    const relPath = path.relative(filesDir, streamPath);
     return new FixtureStream(
       name,
-      { relativePath: path.relative(filesDir, streamPath), },
+      { relativePath: relPath, route: "/" + relPath },
       mvp,
       await Promise.all(variants)
     );
@@ -127,15 +129,16 @@ export async function parseMediaPlaylist(
     let segments: FixtureSegment[] = mediaPl.segments.map(segment => {
       // const segmentPath = `${basedir}/${path.dirname(uri)}/${segment.uri}`;
       const segmentPath = path.resolve(path.join(filesDir, streamName, path.dirname(uri), segment.uri));
+      const relPath = path.relative(filesDir, segmentPath);
       return new FixtureSegment(
-        { relativePath: path.relative(filesDir, segmentPath), },
+        { relativePath: relPath, route: "/" + relPath },
         segment
       );
     });
 
-    const mpPath = path.join(relativeBasedir, uri);
+    const mpPath = path.relative(filesDir, playlistPath);
     return new FixtureMediaPlaylist(
-      { relativePath: path.relative(filesDir, playlistPath), },
+      { relativePath: mpPath, route: "/" + mpPath },
       mediaPl,
       segments
     );
