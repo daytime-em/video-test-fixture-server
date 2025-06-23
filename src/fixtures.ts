@@ -97,13 +97,13 @@ export class FixtureSegment {
 
 export async function parseFixtureStream(
   name: string,
-  basedir: string = "files",
+  relativeBasedir: string = "files",
 ): Promise<FixtureStream> {
-  const filesDir = path.join(__dirname, basedir);
+  const filesDir = path.join(__dirname, relativeBasedir);
   const streamPath = path.join(filesDir, name, "stream.m3u8");
   const mvp = parse((await fs.readFile(streamPath)).toString("utf8"));
   if (mvp instanceof MasterPlaylist) {
-    const variants = mvp.variants.map(v => parseMediaPlaylist(basedir, name, v.uri));
+    const variants = mvp.variants.map(v => parseMediaPlaylist(relativeBasedir, name, v.uri));
     return new FixtureStream(
       name,
       { relativePath: path.relative(filesDir, streamPath), },
@@ -116,11 +116,11 @@ export async function parseFixtureStream(
 }
 
 export async function parseMediaPlaylist(
-  basedir: string = 'files',
+  relativeBasedir: string = 'files',
   streamName: string,
   uri: string
 ): Promise<FixtureMediaPlaylist> {
-  const filesDir = path.join(__dirname, basedir);
+  const filesDir = path.join(__dirname, relativeBasedir);
   const playlistPath = path.resolve(path.join(filesDir, streamName, uri))
   const mediaPl = parse((await fs.readFile(playlistPath)).toString("utf-8"));
   if (mediaPl instanceof MediaPlaylist) {
@@ -133,7 +133,7 @@ export async function parseMediaPlaylist(
       );
     });
 
-    const mpPath = path.join(basedir, uri);
+    const mpPath = path.join(relativeBasedir, uri);
     return new FixtureMediaPlaylist(
       { relativePath: path.relative(filesDir, playlistPath), },
       mediaPl,

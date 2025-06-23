@@ -107,6 +107,7 @@ export class FixtureServer {
     for (const { route, filepath } of walk(basedir)) {
       const filename = path.relative(basedir, filepath).split(path.sep).join('/');
       console.info(`adding route: ${route} -> ${filepath}`);
+
       this.app.get(route, async (req: Request, res: Response) => {
         console.log(`serving file ${filename}`);
         const config = this.fixtureFileConfig[filename] || {};
