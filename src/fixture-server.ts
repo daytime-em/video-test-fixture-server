@@ -355,100 +355,104 @@ export class FixtureServer {
     this.fixtureFileConfig[name] = config;
   }
 
-  // TODO - i guess delete these in favor of an API with, like, rules
-  /**
-   * Add/Update responseBitrate rule for a single file.
-   */
-  setFixtureFileResponseTime(filename: string, milliseconds: number): void {
-    filename = fileRouteFromPath(filename);
-
-    if (!this.fixtureFileConfig[filename])
-      this.fixtureFileConfig[filename] = {};
-    this.fixtureFileConfig[filename].totalTimeMs = milliseconds;
+  removeRules(name: string): void {
+    delete this.fixtureFileConfig[name];
   }
 
-  /**
-   * Remove responseBitrate rule for a single file.
-   */
-  removeFixtureFileResponseTime(filename: string): void {
-    filename = fileRouteFromPath(filename);
-    if (this.fixtureFileConfig[filename]) {
-      delete this.fixtureFileConfig[filename].totalTimeMs;
-      if (Object.keys(this.fixtureFileConfig[filename]).length === 0) {
-        delete this.fixtureFileConfig[filename];
-      }
-    }
-  }
+  // // TODO - i guess delete these in favor of an API with, like, rules
+  // /**
+  //  * Add/Update responseBitrate rule for a single file.
+  //  */
+  // setFixtureFileResponseTime(filename: string, milliseconds: number): void {
+  //   filename = fileRouteFromPath(filename);
 
-  /**
-   * Add/Update responseBitrate rule for a single file.
-   */
-  setFixtureFileResponseBitrate(filename: string, bps: number): void {
-    filename = fileRouteFromPath(filename);
-    if (!this.fixtureFileConfig[filename])
-      this.fixtureFileConfig[filename] = {};
-    this.fixtureFileConfig[filename].responseBitrate = bps;
-  }
+  //   if (!this.fixtureFileConfig[filename])
+  //     this.fixtureFileConfig[filename] = {};
+  //   this.fixtureFileConfig[filename].totalTimeMs = milliseconds;
+  // }
 
-  /**
-   * Remove responseBitrate rule for a single file.
-   */
-  removeFixtureFileResponseBitrate(filename: string): void {
-    filename = fileRouteFromPath(filename);
-    if (this.fixtureFileConfig[filename]) {
-      delete this.fixtureFileConfig[filename].responseBitrate;
-      if (Object.keys(this.fixtureFileConfig[filename]).length === 0) {
-        delete this.fixtureFileConfig[filename];
-      }
-    }
-  }
+  // /**
+  //  * Remove responseBitrate rule for a single file.
+  //  */
+  // removeFixtureFileResponseTime(filename: string): void {
+  //   filename = fileRouteFromPath(filename);
+  //   if (this.fixtureFileConfig[filename]) {
+  //     delete this.fixtureFileConfig[filename].totalTimeMs;
+  //     if (Object.keys(this.fixtureFileConfig[filename]).length === 0) {
+  //       delete this.fixtureFileConfig[filename];
+  //     }
+  //   }
+  // }
 
-  /**
-   * Set custom response headers for a single file.
-   */
-  setFixtureFileHeaders(
-    filename: string,
-    headers: Record<string, string>
-  ): void {
-    filename = fileRouteFromPath(filename);
-    for (const [key, value] of Object.entries(headers)) {
-      console.log(`setting header for ${filename}: {${key}: ${value}}`);
-    }
-    if (!this.fixtureFileConfig[filename])
-      this.fixtureFileConfig[filename] = {};
-    this.fixtureFileConfig[filename].headers = {
-      ...(this.fixtureFileConfig[filename].headers || {}),
-      ...headers,
-    };
-  }
+  // /**
+  //  * Add/Update responseBitrate rule for a single file.
+  //  */
+  // setFixtureFileResponseBitrate(filename: string, bps: number): void {
+  //   filename = fileRouteFromPath(filename);
+  //   if (!this.fixtureFileConfig[filename])
+  //     this.fixtureFileConfig[filename] = {};
+  //   this.fixtureFileConfig[filename].responseBitrate = bps;
+  // }
 
-  /**
-   * Remove custom response headers for a single file.
-   */
-  removeFixtureFileHeaders(
-    filename: string,
-    headerNames: string[] | null = null
-  ): void {
-    filename = fileRouteFromPath(filename);
-    if (
-      this.fixtureFileConfig[filename] &&
-      this.fixtureFileConfig[filename].headers
-    ) {
-      if (!headerNames) {
-        delete this.fixtureFileConfig[filename].headers;
-      } else {
-        for (const name of headerNames) {
-          delete this.fixtureFileConfig[filename].headers![name];
-        }
-        if (
-          Object.keys(this.fixtureFileConfig[filename].headers!).length === 0
-        ) {
-          delete this.fixtureFileConfig[filename].headers;
-        }
-      }
-      if (Object.keys(this.fixtureFileConfig[filename]).length === 0) {
-        delete this.fixtureFileConfig[filename];
-      }
-    }
-  }
+  // /**
+  //  * Remove responseBitrate rule for a single file.
+  //  */
+  // removeFixtureFileResponseBitrate(filename: string): void {
+  //   filename = fileRouteFromPath(filename);
+  //   if (this.fixtureFileConfig[filename]) {
+  //     delete this.fixtureFileConfig[filename].responseBitrate;
+  //     if (Object.keys(this.fixtureFileConfig[filename]).length === 0) {
+  //       delete this.fixtureFileConfig[filename];
+  //     }
+  //   }
+  // }
+
+  // /**
+  //  * Set custom response headers for a single file.
+  //  */
+  // setFixtureFileHeaders(
+  //   filename: string,
+  //   headers: Record<string, string>
+  // ): void {
+  //   filename = fileRouteFromPath(filename);
+  //   for (const [key, value] of Object.entries(headers)) {
+  //     console.log(`setting header for ${filename}: {${key}: ${value}}`);
+  //   }
+  //   if (!this.fixtureFileConfig[filename])
+  //     this.fixtureFileConfig[filename] = {};
+  //   this.fixtureFileConfig[filename].headers = {
+  //     ...(this.fixtureFileConfig[filename].headers || {}),
+  //     ...headers,
+  //   };
+  // }
+
+  // /**
+  //  * Remove custom response headers for a single file.
+  //  */
+  // removeFixtureFileHeaders(
+  //   filename: string,
+  //   headerNames: string[] | null = null
+  // ): void {
+  //   filename = fileRouteFromPath(filename);
+  //   if (
+  //     this.fixtureFileConfig[filename] &&
+  //     this.fixtureFileConfig[filename].headers
+  //   ) {
+  //     if (!headerNames) {
+  //       delete this.fixtureFileConfig[filename].headers;
+  //     } else {
+  //       for (const name of headerNames) {
+  //         delete this.fixtureFileConfig[filename].headers![name];
+  //       }
+  //       if (
+  //         Object.keys(this.fixtureFileConfig[filename].headers!).length === 0
+  //       ) {
+  //         delete this.fixtureFileConfig[filename].headers;
+  //       }
+  //     }
+  //     if (Object.keys(this.fixtureFileConfig[filename]).length === 0) {
+  //       delete this.fixtureFileConfig[filename];
+  //     }
+  //   }
+  // }
 }

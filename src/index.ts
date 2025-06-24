@@ -21,19 +21,16 @@ const server = new FixtureServer({ port: port, basedir: FILES_DIR});
   console.log(`Parsed Variant ${fixtureStream.variants[0].playlistFile.relativePath}`);
   const cdn1Segments = fixtureStream.variants[0].segmentsInTimeRange(0, 75);
   const cdn2Segments = fixtureStream.variants[0].segmentsInTimeRange(75);
-  cdn1Segments?.forEach(it => server.setFixtureFileHeaders(
-    it.segmentFile.relativePath, { "x-cdn" : "fastly" }
+  cdn1Segments?.forEach(it => server.requestSucceeds(
+    it.segmentFile.relativePath, { headers: { "x-cdn" : "fastly" } }
   ));
-  cdn2Segments?.forEach(it => server.setFixtureFileHeaders(
-    it.segmentFile.relativePath, { "x-cdn" : "edgemv" }
+  cdn2Segments?.forEach(it => server.requestSucceeds(
+    it.segmentFile.relativePath, { headers: { "x-cdn" : "edgemv" } }
   ));
   
   // Just the text files
-  server.setFixtureFileResponseTime('file1.txt', 2000);
-  server.setFixtureFileResponseBitrate('file2.txt', 256 * 1024);
-  server.setFixtureFileHeaders('file2.txt', {
-    'X-CDN': "edgemv",
-  });
+  server.requestSucceeds('file1.txt', { responseTimeMs: 2000 });
+  server.requestSucceeds('file2.txt', { responseBitsPerSec: 256 * 1024 });
 
   server.cloneFixtureStream(
     fixtureStream,
