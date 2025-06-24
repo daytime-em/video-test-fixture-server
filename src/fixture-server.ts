@@ -4,26 +4,8 @@ import path from "path";
 import { Readable } from "stream";
 import { lookup as lookupMime } from "mime-types";
 import { FixtureMediaPlaylist, FixtureSegment, FixtureStream } from "./fixtures";
+import { FailRules, SuccessRules, RedirectRules } from "./rules";
 
-export type FixtureRules = {
-  headers?: Record<string, string>;
-  responseBitsPerSec?: number;
-  responseTimeMs?: number;
-};
-
-export type RedirectRules = {
-  statusLine: { code: number; message?: string };
-  /**
-   * Can be a relative path, route, or a full URL.
-   * Location header applied after headers in the base rules
-   */
-  location: string;
-};
-
-export type FailRules = {
-  statusLine: { code: number; message?: string };
-  errorBody?: any;
-};
 
 type FixtureFileConfig = {
   /**
@@ -110,6 +92,15 @@ function fileRouteFromPath(relPath: string): string {
     return relPath;
   } else {
     return `/${relPath}`;
+  }
+}
+
+function isValidURL(str: string) {
+  try {
+    new URL(str); // Attempt to create a URL object
+    return true; // If successful, it's a valid URL
+  } catch (e) {
+    return false; // If an error is thrown, it's not a valid URL
   }
 }
 
@@ -325,6 +316,43 @@ export class FixtureServer {
       },
       originalSegment.mediaSegment
     );
+  }
+
+  requestSucceeds(name: string, rules: SuccessRules): void {
+    name = fileRouteFromPath(name);
+    let config: FixtureFileConfig = {
+      headers: rules.headers,
+      responseBitrate: rules.responseBitsPerSec,
+      totalTimeMs: rules.responseTimeMs,
+    };
+
+    this.fixtureFileConfig[name] = config;
+  }
+
+  requestRedirects(name: string, rules: RedirectRules, statusCode: number = 302): void {
+    name = fileRouteFromPath(name);
+    let location = rules.location;
+    if (!isValidURL(location)) {
+      location = fileRouteFromPath(location);
+    }
+    let headers = rules.headers || {};
+
+    let config: FixtureFileConfig = {
+      headers: { ...headers, ...{ "Location": location } },
+      statusLine: { code: statusCode, message: "Found" }
+    }
+    this.fixtureFileConfig[name] = config;
+  }
+
+  requestFails(name: string, rules: FailRules): void {
+    name = fileRouteFromPath(name);
+
+    let config: FixtureFileConfig = {
+      headers: rules.headers,
+      errorBody: rules.errorBody,
+      statusLine: rules.statusLine,
+    }
+    this.fixtureFileConfig[name] = config;
   }
 
   // TODO - i guess delete these in favor of an API with, like, rules
