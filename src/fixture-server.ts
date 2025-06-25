@@ -113,10 +113,7 @@ export class FixtureServer {
   public port: number;
   public basedir: string;
   private server: ReturnType<Express["listen"]> | null;
-  // todo - delete
   private fixtureFileConfig: FixtureFileConfigMap;
-
-  private routes: Record<string, FixtureFileConfig>;
 
   constructor({ port = 3000, basedir = __dirname }: FixtureServerOptions = {}) {
     this.port = port;
@@ -125,8 +122,6 @@ export class FixtureServer {
     this.fixtureFileConfig = {};
     this.basedir = basedir;
     this._setupRoutes(basedir);
-
-    this.routes = {};
   }
 
   private async _respond(absPath: string, req: Request, res: Response) {
