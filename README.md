@@ -13,7 +13,7 @@ yarn dev
 
 ## How to configure
 
-The server must be configured in code. You can clone routes and add rules to an instance of `FixtureServer ` index.ts.
+The server must be configured in code. You can clone routes and add rules to an instance of `FixtureServer` in index.ts.
 
 ### Referencing the test streams
 
