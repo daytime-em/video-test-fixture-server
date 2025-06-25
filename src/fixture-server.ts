@@ -1,11 +1,13 @@
 import express, { Express, Request, Response } from "express";
-import fs, { openAsBlob } from "fs";
+import fs from "fs";
 import path from "path";
-import { Readable } from "stream";
 import { lookup as lookupMime } from "mime-types";
-import { FixtureMediaPlaylist, FixtureSegment, FixtureStream } from "./fixtures";
+import {
+  FixtureMediaPlaylist,
+  FixtureSegment,
+  FixtureStream,
+} from "./fixtures";
 import { FailRules, SuccessRules, RedirectRules } from "./rules";
-
 
 type FixtureFileConfig = {
   successRules?: SuccessRules;
@@ -138,7 +140,7 @@ export class FixtureServer {
     if (config.failRules) {
       const { statusLine, errorBody, headers } = config.failRules;
       if (headers && typeof headers === "object") {
-        Object.entries(headers).forEach(([k ,v]) => res.setHeader(k, v));
+        Object.entries(headers).forEach(([k, v]) => res.setHeader(k, v));
       }
       res.statusCode = statusLine?.code ?? 500;
       res.statusMessage = statusLine?.message ?? "";
@@ -156,9 +158,9 @@ export class FixtureServer {
       res.statusMessage = "Found";
 
       if (headers && typeof headers === "object") {
-        Object.entries(headers).forEach(([k ,v]) => res.setHeader(k, v));
+        Object.entries(headers).forEach(([k, v]) => res.setHeader(k, v));
       }
-      let realLocation: string
+      let realLocation: string;
       if (!isValidURL(location)) {
         realLocation = fileRouteFromPath(location);
       } else {
@@ -170,8 +172,9 @@ export class FixtureServer {
       return;
     }
 
-    // Response should succeed 
-    const { responseTimeMs, responseBitsPerSec, headers } = config.successRules ?? {};
+    // Response should succeed
+    const { responseTimeMs, responseBitsPerSec, headers } =
+      config.successRules ?? {};
 
     // Set custom headers if present
     let contentTypeSet = false;
@@ -261,10 +264,7 @@ export class FixtureServer {
 
   cloneRoute(originalRelPath: string, newRelPath: string): string {
     console.log(`cloning route ${originalRelPath} -> ${newRelPath}`);
-    const fileAbsPath = path.join(
-      this.basedir,
-      originalRelPath
-    );
+    const fileAbsPath = path.join(this.basedir, originalRelPath);
     const newRoute = fileRouteFromPath(newRelPath);
 
     console.log(`Adding route: ${newRoute} -> ${fileAbsPath}`);
@@ -279,16 +279,21 @@ export class FixtureServer {
     originalStream: FixtureStream,
     newStreamName: string
   ): FixtureStream {
-    const pathParts = originalStream.playlistFile.relativePath.split(path.sep).slice(1)
+    const pathParts = originalStream.playlistFile.relativePath
+      .split(path.sep)
+      .slice(1);
     const clonedPath = path.join(newStreamName, ...pathParts);
     return new FixtureStream(
       newStreamName,
-      { 
-        relativePath: originalStream.playlistFile.relativePath, 
-        route: this.cloneRoute(originalStream.playlistFile.relativePath, clonedPath)
+      {
+        relativePath: originalStream.playlistFile.relativePath,
+        route: this.cloneRoute(
+          originalStream.playlistFile.relativePath,
+          clonedPath
+        ),
       },
       originalStream.masterPlaylist,
-      originalStream.variants.map(variant => 
+      originalStream.variants.map((variant) =>
         this.cloneFixturePlaylist(variant, newStreamName)
       )
     );
@@ -296,18 +301,25 @@ export class FixtureServer {
 
   cloneFixturePlaylist(
     originalPlaylist: FixtureMediaPlaylist,
-    newStreamName: string,
+    newStreamName: string
   ): FixtureMediaPlaylist {
-    const pathParts = originalPlaylist.playlistFile.relativePath.split(path.sep).slice(1)
+    const pathParts = originalPlaylist.playlistFile.relativePath
+      .split(path.sep)
+      .slice(1);
     const clonedPath = path.join(newStreamName, ...pathParts);
 
     return new FixtureMediaPlaylist(
-      { 
+      {
         relativePath: clonedPath,
-        route: this.cloneRoute(originalPlaylist.playlistFile.relativePath, clonedPath)
+        route: this.cloneRoute(
+          originalPlaylist.playlistFile.relativePath,
+          clonedPath
+        ),
       },
       originalPlaylist.mediaPlaylist,
-      originalPlaylist.segments.map(it => this.cloneFixtureSegment(it, newStreamName))
+      originalPlaylist.segments.map((it) =>
+        this.cloneFixtureSegment(it, newStreamName)
+      )
     );
   }
 
@@ -315,13 +327,18 @@ export class FixtureServer {
     originalSegment: FixtureSegment,
     newStreamName: string
   ): FixtureSegment {
-    const pathParts = originalSegment.segmentFile.relativePath.split(path.sep).slice(1)
+    const pathParts = originalSegment.segmentFile.relativePath
+      .split(path.sep)
+      .slice(1);
     const clonedPath = path.join(newStreamName, ...pathParts);
 
     return new FixtureSegment(
       {
-        relativePath: originalSegment.segmentFile.relativePath, 
-        route: this.cloneRoute(originalSegment.segmentFile.relativePath, clonedPath)
+        relativePath: originalSegment.segmentFile.relativePath,
+        route: this.cloneRoute(
+          originalSegment.segmentFile.relativePath,
+          clonedPath
+        ),
       },
       originalSegment.mediaSegment
     );
@@ -330,7 +347,7 @@ export class FixtureServer {
   requestSucceeds(name: string, rules: SuccessRules): void {
     name = fileRouteFromPath(name);
     let config: FixtureFileConfig = {
-     successRules: rules 
+      successRules: rules,
     };
 
     this.fixtureFileConfig[name] = config;
@@ -338,10 +355,10 @@ export class FixtureServer {
 
   requestRedirects(name: string, rules: RedirectRules): void {
     name = fileRouteFromPath(name);
-    
+
     let config: FixtureFileConfig = {
-      redirectRules: rules
-    }
+      redirectRules: rules,
+    };
     this.fixtureFileConfig[name] = config;
   }
 
@@ -349,8 +366,8 @@ export class FixtureServer {
     name = fileRouteFromPath(name);
 
     let config: FixtureFileConfig = {
-      failRules: rules
-    }
+      failRules: rules,
+    };
     this.fixtureFileConfig[name] = config;
   }
 

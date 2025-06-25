@@ -1,9 +1,5 @@
 import { FixtureServer } from './fixture-server';
 
-import { parse } from 'hls-parser';
-// import fs from 'fs';
-import { promises as fs } from 'fs';
-import { MasterPlaylist, MediaPlaylist } from 'hls-parser/types';
 import path from 'path';
 import { parseFixtureStream } from './fixtures';
 
