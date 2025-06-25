@@ -336,7 +336,7 @@ export class FixtureServer {
     this.fixtureFileConfig[name] = config;
   }
 
-  requestRedirects(name: string, rules: RedirectRules, statusCode: number = 302): void {
+  requestRedirects(name: string, rules: RedirectRules): void {
     name = fileRouteFromPath(name);
     
     let config: FixtureFileConfig = {

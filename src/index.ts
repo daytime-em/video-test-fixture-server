@@ -17,8 +17,7 @@ const server = new FixtureServer({ port: port, basedir: FILES_DIR});
 
   // Set up fake CDN change
   const fixtureStream = await parseFixtureStream("blue-moon")
-  console.log(`Parsed fixture stream ${fixtureStream.streamName} at ${fixtureStream.playlistFile.relativePath}`);
-  console.log(`Parsed Variant ${fixtureStream.variants[0].playlistFile.relativePath}`);
+  // only 1 variant
   const cdn1Segments = fixtureStream.variants[0].segmentsInTimeRange(0, 75);
   const cdn2Segments = fixtureStream.variants[0].segmentsInTimeRange(75);
   cdn1Segments?.forEach(it => server.requestSucceeds(
@@ -28,14 +27,21 @@ const server = new FixtureServer({ port: port, basedir: FILES_DIR});
     it.segmentFile.relativePath, { headers: { "x-cdn" : "edgemv" } }
   ));
   
+  // Set up redirection case
+  const muxPromo = await parseFixtureStream("mux-promo");
+  const clonedPromo = server.cloneFixtureStream(
+    muxPromo,
+    "mux-promo-with-redirect"
+  );
+  // only 1 variant
+  clonedPromo.variants[0].segments.forEach((it, index) => {
+    server.requestRedirects(it.segmentFile.route, {
+      location: muxPromo.variants[0].segments[index].segmentFile.route
+    });
+  });
+  
   // Just the text files
   server.requestSucceeds('file1.txt', { responseTimeMs: 2000 });
   // server.requestSucceeds('file2.txt', { responseBitsPerSec: 256 * 1024 });
   server.requestRedirects('file2.txt', { location: "file1.txt" });
-
-  server.cloneFixtureStream(
-    fixtureStream,
-    "cloned-blue-moon"
-  )
-
 })();
