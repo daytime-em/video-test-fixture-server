@@ -5,6 +5,7 @@ export type SuccessRules = {
 };
 
 export type RedirectRules = {
+  code?: number;
   headers?: Record<string, string>;
   /**
    * Can be a relative path, route, or a full URL.

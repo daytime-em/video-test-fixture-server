@@ -8,31 +8,9 @@ import { FailRules, SuccessRules, RedirectRules } from "./rules";
 
 
 type FixtureFileConfig = {
-  /**
-   * If set, total time (in ms) to serve the file (overrides responseBitrate).
-   */
-  totalTimeMs?: number;
-  /**
-   * If set, bits per second for throttling.
-   * Ignored if totalTimeMs is set.
-   */
-  responseBitrate?: number;
-  /**
-   * If set, will add these headers to the response
-   */
-  headers?: Record<string, string>;
-  /**
-   * If set will send this status code/message with the response
-   */
-  statusLine?: { code: number; message?: string };
-  /**
-   * If set, will send this instead of the fixture data.
-   */
-  errorBody?: any;
-  /**
-   * If true, skips writing anything out in the response body
-   */
-  skipsWrite?: boolean;
+  successRules?: SuccessRules;
+  redirectRules?: RedirectRules;
+  failRules?: FailRules;
 };
 
 type FixtureFileConfigMap = Record<string, FixtureFileConfig>;
@@ -156,13 +134,44 @@ export class FixtureServer {
       .join("/");
     const config = this.fixtureFileConfig[req.url] || {};
 
-    // todo - Look for status line and response body
     // Response should fail
+    if (config.failRules) {
+      const { statusLine, errorBody, headers } = config.failRules;
+      if (headers && typeof headers === "object") {
+        Object.entries(headers).forEach(([k ,v]) => res.setHeader(k, v));
+      }
+      res.statusCode = statusLine?.code ?? 500;
+      res.statusMessage = statusLine?.message ?? "";
+      if (errorBody) {
+        res.write(errorBody);
+      }
+      res.end();
+      return;
+    }
 
     // Response is a redirect
+    if (config.redirectRules) {
+      const { code, headers, location } = config.redirectRules;
+      res.statusCode = code ?? 302;
+      res.statusMessage = "Found";
+
+      if (headers && typeof headers === "object") {
+        Object.entries(headers).forEach(([k ,v]) => res.setHeader(k, v));
+      }
+      let realLocation: string
+      if (!isValidURL(location)) {
+        realLocation = fileRouteFromPath(location);
+      } else {
+        realLocation = location;
+      }
+      res.setHeader("Location", realLocation);
+
+      res.end();
+      return;
+    }
 
     // Response should succeed 
-    const { totalTimeMs, responseBitrate, headers } = config;
+    const { responseTimeMs, responseBitsPerSec, headers } = config.successRules ?? {};
 
     // Set custom headers if present
     let contentTypeSet = false;
@@ -181,11 +190,11 @@ export class FixtureServer {
       res.setHeader("Content-Type", mimeType);
     }
 
-    if (totalTimeMs && totalTimeMs > 0) {
+    if (responseTimeMs && responseTimeMs > 0) {
       // Response time throttling
       try {
         const data = await fs.promises.readFile(absPath);
-        const bytesPerSec = (data.length * 1000) / totalTimeMs;
+        const bytesPerSec = (data.length * 1000) / responseTimeMs;
         console.log(
           `${absPath}: writing out ${data.length} at ${bytesPerSec} bytes per sec`
         );
@@ -196,16 +205,16 @@ export class FixtureServer {
         // todo - better than this
         res.sendStatus(500);
       }
-    } else if (responseBitrate && responseBitrate > 0) {
+    } else if (responseBitsPerSec && responseBitsPerSec > 0) {
       // Bitrate (bits/sec) throttling
       try {
         const data = await fs.promises.readFile(absPath);
         console.log(
           `${absPath}: writing out ${data.length} at ${
-            responseBitrate / 8
+            responseBitsPerSec / 8
           } bytes per sec`
         );
-        await writeResponseThrottled(data, res, responseBitrate / 8);
+        await writeResponseThrottled(data, res, responseBitsPerSec / 8);
         res.end();
       } catch (err) {
         res.sendStatus(500);
@@ -321,9 +330,7 @@ export class FixtureServer {
   requestSucceeds(name: string, rules: SuccessRules): void {
     name = fileRouteFromPath(name);
     let config: FixtureFileConfig = {
-      headers: rules.headers,
-      responseBitrate: rules.responseBitsPerSec,
-      totalTimeMs: rules.responseTimeMs,
+     successRules: rules 
     };
 
     this.fixtureFileConfig[name] = config;
@@ -331,15 +338,9 @@ export class FixtureServer {
 
   requestRedirects(name: string, rules: RedirectRules, statusCode: number = 302): void {
     name = fileRouteFromPath(name);
-    let location = rules.location;
-    if (!isValidURL(location)) {
-      location = fileRouteFromPath(location);
-    }
-    let headers = rules.headers || {};
-
+    
     let config: FixtureFileConfig = {
-      headers: { ...headers, ...{ "Location": location } },
-      statusLine: { code: statusCode, message: "Found" }
+      redirectRules: rules
     }
     this.fixtureFileConfig[name] = config;
   }
@@ -348,9 +349,7 @@ export class FixtureServer {
     name = fileRouteFromPath(name);
 
     let config: FixtureFileConfig = {
-      headers: rules.headers,
-      errorBody: rules.errorBody,
-      statusLine: rules.statusLine,
+      failRules: rules
     }
     this.fixtureFileConfig[name] = config;
   }

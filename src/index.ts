@@ -30,7 +30,8 @@ const server = new FixtureServer({ port: port, basedir: FILES_DIR});
   
   // Just the text files
   server.requestSucceeds('file1.txt', { responseTimeMs: 2000 });
-  server.requestSucceeds('file2.txt', { responseBitsPerSec: 256 * 1024 });
+  // server.requestSucceeds('file2.txt', { responseBitsPerSec: 256 * 1024 });
+  server.requestRedirects('file2.txt', { location: "file1.txt" });
 
   server.cloneFixtureStream(
     fixtureStream,
