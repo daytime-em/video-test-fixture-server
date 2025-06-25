@@ -339,34 +339,34 @@ export class FixtureServer {
     );
   }
 
-  requestSucceeds(name: string, rules: SuccessRules): void {
-    name = fileRouteFromPath(name);
+  requestSucceeds(route: string, rules: SuccessRules): void {
+    route = fileRouteFromPath(route);
     let config: FixtureFileConfig = {
       successRules: rules,
     };
 
-    this.fixtureFileConfig[name] = config;
+    this.fixtureFileConfig[route] = config;
   }
 
-  requestRedirects(name: string, rules: RedirectRules): void {
-    name = fileRouteFromPath(name);
+  requestRedirects(route: string, rules: RedirectRules): void {
+    route = fileRouteFromPath(route);
 
     let config: FixtureFileConfig = {
       redirectRules: rules,
     };
-    this.fixtureFileConfig[name] = config;
+    this.fixtureFileConfig[route] = config;
   }
 
-  requestFails(name: string, rules: FailRules): void {
-    name = fileRouteFromPath(name);
+  requestFails(route: string, rules: FailRules): void {
+    route = fileRouteFromPath(route);
 
     let config: FixtureFileConfig = {
       failRules: rules,
     };
-    this.fixtureFileConfig[name] = config;
+    this.fixtureFileConfig[route] = config;
   }
 
-  removeRules(name: string): void {
-    delete this.fixtureFileConfig[name];
+  removeRules(route: string): void {
+    delete this.fixtureFileConfig[route];
   }
 }
