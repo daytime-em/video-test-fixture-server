@@ -57,3 +57,13 @@ server.requestFails(clonedStream.playlistFile.route, {
   errorBody: "A fake error occurred for testing"
  });
 ```
+
+## Adding Assets
+
+You can add assets to the server by adding them to `resources/files`
+
+There's a script, `scripts/create-basic-fixture-from-file.sh` that will create a simple HLS stream with 3 levels based on an mp4 file you choose. You can customize that script, or you can make your own for more-complex cases.
+
+### Stream files and GitHub
+
+Be careful. GitHub has a maximum size per-commit, so for long streams you may have trouble pushing if you commit all your segments at once. This is a huge pain, and I wasn't able to find a way around it. Sorry.
