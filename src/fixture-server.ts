@@ -121,7 +121,25 @@ export class FixtureServer {
     this.server = null;
     this.fixtureFileConfig = {};
     this.basedir = basedir;
+    this._setupCORS();
     this._setupRoutes(basedir);
+  }
+
+  private _setupCORS() {
+    this.app.use((req, res, next) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Expose-Headers', 'x-cdn');
+      
+      if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+      }
+      
+      next();
+    });
   }
 
   private async _respond(absPath: string, req: Request, res: Response) {
