@@ -36,6 +36,20 @@ const server = new FixtureServer({ port: port, basedir: FILES_DIR});
     });
   });
   
+  // Clone mux-promo, but make the multivariant playlist fail (HTTP 500)
+  const muxPromoManifestFails = server.cloneFixtureStream(muxPromo, "mux-promo-manifest-fails");
+  server.requestFails(muxPromoManifestFails.playlistFile.route,
+   { statusLine: { code: 500, message: "Internal Server Error" } }
+  );
+
+  // Clone mux-promo, but make all segments in the first variant fail (HTTP 500)
+  const muxPromoSegmentsFail = server.cloneFixtureStream(muxPromo, "mux-promo-segments-fail");
+  muxPromoSegmentsFail.variants[0].segments.forEach(seg => {
+    server.requestFails(seg.segmentFile.route, 
+      { statusLine: { code: 500, message: "Internal Server Error" } }
+    );
+  });
+  
   // Just the text files
   server.requestSucceeds('file1.txt', { responseTimeMs: 2000 });
   // server.requestSucceeds('file2.txt', { responseBitsPerSec: 256 * 1024 });
