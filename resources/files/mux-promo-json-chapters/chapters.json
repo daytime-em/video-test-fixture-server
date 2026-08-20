@@ -1,0 +1,44 @@
+[
+  {
+    "chapter": 1,
+    "start-time": 0,
+    "titles": [
+        {
+            "language": "en",
+            "title": "Chapter 1"
+        },
+        {
+            "language": "es",
+            "title": "Capítulo 1"
+        }
+    ]
+  },
+  {
+    "chapter": 1,
+    "start-time": 10,
+    "titles": [
+        {
+            "language": "en",
+            "title": "Chapter 2"
+        },
+        {
+            "language": "es",
+            "title": "Capítulo 2"
+        }
+    ]
+  },
+  {
+    "chapter": 1,
+    "start-time": 20,
+    "titles": [
+        {
+            "language": "en",
+            "title": "Chapter 3"
+        },
+        {
+            "language": "es",
+            "title": "Capítulo 3"
+        }
+    ]
+  }
+]
