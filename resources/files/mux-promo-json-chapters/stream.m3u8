@@ -1,5 +1,6 @@
 #EXTM3U
-#EXT-X-VERSION:3
+#EXT-X-VERSION:5
+#EXT-X-INDEPENDENT-SEGMENTS
 
 #EXT-X-SESSION-DATA:DATA-ID="com.apple.hls.chapters",VALUE="chapters.json"
 
